@@ -1,5 +1,8 @@
-package com.alvna;
+package com.alvna.model;
 
+
+import com.alvna.NoobChain2;
+import com.alvna.util.StringUtil;
 
 import java.security.*;
 import java.util.ArrayList;
@@ -29,9 +32,8 @@ public class Transaction {
     private String calulateHash() {
         sequence++; //increase the sequence to avoid 2 identical transactions having the same hash
         return StringUtil.applySha256(
-                StringUtil.getStringFromKey(sender) +
-                        StringUtil.getStringFromKey(reciepient) +
-                        Float.toString(value) + sequence
+                StringUtil.getStringFromKey(sender) + StringUtil.getStringFromKey(reciepient) +
+                        value + sequence
         );
     }
 

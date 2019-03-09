@@ -1,4 +1,6 @@
-package com.alvna;
+package com.alvna.model;
+
+import com.alvna.NoobChain2;
 
 import java.security.*;
 import java.security.spec.ECGenParameterSpec;

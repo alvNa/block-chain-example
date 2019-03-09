@@ -1,5 +1,7 @@
-package com.alvna;
+package com.alvna.model;
 
+
+import com.alvna.util.StringUtil;
 
 import java.security.PublicKey;
 

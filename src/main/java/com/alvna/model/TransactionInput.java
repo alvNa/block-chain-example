@@ -1,4 +1,4 @@
-package com.alvna;
+package com.alvna.model;
 
 
 public class TransactionInput {
