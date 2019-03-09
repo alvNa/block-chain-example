@@ -3,6 +3,7 @@ package com.alvna;
 
 import com.alvna.model.*;
 import com.alvna.service.BlockService;
+import com.alvna.service.WalletService;
 
 import java.security.Security;
 import java.util.ArrayList;
@@ -25,6 +26,7 @@ public class NoobChain2 {
     public static Transaction genesisTransaction;
 
     private static BlockService blockService = new BlockService();
+    private static WalletService walletService = new WalletService();
 
     public static void main(String[] args) {
         //add our blocks to the blockchain ArrayList:
@@ -49,29 +51,29 @@ public class NoobChain2 {
 
         //testing
         Block block1 = new Block(genesis.getHash());
-        System.out.println("\nWalletA's balance is: " + walletA.getBalance());
+        System.out.println("\nWalletA's balance is: " + walletService.getBalance(walletA,UTXOs));
         System.out.println("\nWalletA is Attempting to send funds (40) to WalletB...");
-        blockService.addTransaction(block1, walletA.sendFunds(walletB.publicKey, 40f));
+        blockService.addTransaction(block1, walletService.sendFunds(walletA, UTXOs, walletB.publicKey, 40f));
 
         addBlock(block1);
-        System.out.println("\nWalletA's balance is: " + walletA.getBalance());
-        System.out.println("WalletB's balance is: " + walletB.getBalance());
+        System.out.println("\nWalletA's balance is: " + walletService.getBalance(walletA, UTXOs));
+        System.out.println("WalletB's balance is: " +  walletService.getBalance(walletB, UTXOs));
 
         Block block2 = new Block(block1.getHash());
         System.out.println("\nWalletA Attempting to send more funds (1000) than it has...");
-        blockService.addTransaction(block2, walletA.sendFunds(walletB.publicKey, 1000f));
+        blockService.addTransaction(block2, walletService.sendFunds(walletA, UTXOs, walletB.publicKey,1000f));
         addBlock(block2);
-        System.out.println("\nWalletA's balance is: " + walletA.getBalance());
-        System.out.println("WalletB's balance is: " + walletB.getBalance());
+        System.out.println("\nWalletA's balance is: " +  walletService.getBalance(walletA, UTXOs));
+        System.out.println("WalletB's balance is: " +  walletService.getBalance(walletB, UTXOs));
 
         Block block3 = new Block(block2.getHash());
         System.out.println("\nWalletB is Attempting to send funds (20) to WalletA...");
-        blockService.addTransaction(block3, walletB.sendFunds( walletA.publicKey, 20));
-        System.out.println("\nWalletA's balance is: " + walletA.getBalance());
-        System.out.println("WalletB's balance is: " + walletB.getBalance());
+        blockService.addTransaction(block3, walletService.sendFunds(walletB,UTXOs, walletA.publicKey, 20));
+
+        System.out.println("\nWalletA's balance is: " + walletService.getBalance(walletA, UTXOs));
+        System.out.println("WalletB's balance is: " +  walletService.getBalance(walletB, UTXOs));
 
         isChainValid();
-
     }
 
     public static Boolean isChainValid() {
@@ -117,19 +119,19 @@ public class NoobChain2 {
                 }
 
                 for(TransactionInput input: currentTransaction.inputs) {
-                    tempOutput = tempUTXOs.get(input.transactionOutputId);
+                    tempOutput = tempUTXOs.get(input.getTransactionOutputId());
 
                     if(tempOutput == null) {
                         System.out.println("#Referenced input on Transaction(" + t + ") is Missing");
                         return false;
                     }
 
-                    if(input.UTXO.value != tempOutput.value) {
+                    if(input.getUnspentTransOut().value != tempOutput.value) {
                         System.out.println("#Referenced input Transaction(" + t + ") value is Invalid");
                         return false;
                     }
 
-                    tempUTXOs.remove(input.transactionOutputId);
+                    tempUTXOs.remove(input.getTransactionOutputId());
                 }
 
                 for(TransactionOutput output: currentTransaction.outputs) {

@@ -58,7 +58,7 @@ public class Transaction {
 
         //gather transaction inputs (Make sure they are unspent):
         for(TransactionInput i : inputs) {
-            i.UTXO = NoobChain2.UTXOs.get(i.transactionOutputId);
+            i.setUnspentTransOut(NoobChain2.UTXOs.get(i.getTransactionOutputId()));
         }
 
         //check if transaction is valid:
@@ -78,10 +78,10 @@ public class Transaction {
             NoobChain2.UTXOs.put(o.id , o);
         }
 
-        //remove transaction inputs from UTXO lists as spent:
+        //remove transaction inputs from unspentTransOut lists as spent:
         for(TransactionInput i : inputs) {
-            if(i.UTXO == null) continue; //if Transaction can't be found skip it
-            NoobChain2.UTXOs.remove(i.UTXO.id);
+            if(i.getUnspentTransOut() == null) continue; //if Transaction can't be found skip it
+            NoobChain2.UTXOs.remove(i.getUnspentTransOut().id);
         }
 
         return true;
@@ -91,8 +91,8 @@ public class Transaction {
     public float getInputsValue() {
         float total = 0;
         for(TransactionInput i : inputs) {
-            if(i.UTXO == null) continue; //if Transaction can't be found skip it
-            total += i.UTXO.value;
+            if(i.getUnspentTransOut() == null) continue; //if Transaction can't be found skip it
+            total += i.getUnspentTransOut().value;
         }
         return total;
     }
@@ -105,7 +105,4 @@ public class Transaction {
         }
         return total;
     }
-
-
-
 }
