@@ -6,8 +6,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Wallet {
-    public PrivateKey privateKey;
-    public PublicKey publicKey;
+    private PrivateKey privateKey;
+    private PublicKey publicKey;
     //only unspent transaction outputs owned by this wallet.
     private Map<String,TransactionOutput> unspentTxOutMap = new HashMap<String,TransactionOutput>();
 
@@ -21,6 +21,14 @@ public class Wallet {
 
     public void addTransaction(String key, TransactionOutput value){
         unspentTxOutMap.put(key,value);
+    }
+
+    public PublicKey getPublicKey() {
+        return publicKey;
+    }
+
+    public PrivateKey getPrivateKey() {
+        return privateKey;
     }
 
     public void generateKeyPair() {

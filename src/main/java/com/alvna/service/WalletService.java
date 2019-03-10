@@ -7,21 +7,21 @@ import com.alvna.model.Wallet;
 
 import java.security.PublicKey;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 public class WalletService {
 
     //returns balance and stores the unspentTransOut's owned by this wallet
-    public float getBalance(Wallet w, Map<String, TransactionOutput> unspentTransMap) {
-        float total = 0;
-        for (Map.Entry<String, TransactionOutput> item: unspentTransMap.entrySet()){
-            TransactionOutput unspentTrans = item.getValue();
-            if(unspentTrans.isMine(w.publicKey)) { //if output belongs to me ( if coins belong to me )
-                w.addTransaction(unspentTrans.id,unspentTrans); //add it to our list of unspent transactions.
-                total += unspentTrans.value ;
-            }
-        }
-        return total;
+    public double getBalance(Wallet w, Map<String, TransactionOutput> unspentTransMap) {
+        //if output belongs to me ( if coins belong to me )
+        Supplier<Stream<TransactionOutput>> sup = () -> unspentTransMap.values().stream().filter(t -> t.isMine(w.getPublicKey()));
+        sup.get().forEach(t -> w.addTransaction(t.id,t));
+
+        return sup.get().mapToDouble(t -> t.value).sum();
     }
 
     //Generates and returns a new transaction from this wallet.
@@ -31,22 +31,25 @@ public class WalletService {
             return null;
         }
         //create array list of inputs
-        ArrayList<TransactionInput> inputs = new ArrayList<TransactionInput>();
+        List<TransactionInput> inputs = new ArrayList<TransactionInput>();
 
-        float total = 0;
-        for (Map.Entry<String, TransactionOutput> item: w.getUnspentTxOutMap().entrySet()){
-            TransactionOutput UTXO = item.getValue();
-            total += UTXO.value;
-            inputs.add(new TransactionInput(UTXO.id));
-            if(total > value) break;
-        }
+        AtomicLong counter = new AtomicLong(0);
 
-        Transaction newTransaction = new Transaction(w.publicKey, _recipient , value, inputs);
-        newTransaction.generateSignature(w.privateKey);
+        w.getUnspentTxOutMap().values().stream().forEach(
+                t -> {
+                    counter.getAndAdd((long)t.value);
 
-        for(TransactionInput input: inputs){
-            w.getUnspentTxOutMap().remove(input.getTransactionOutputId());
-        }
+                    if (counter.get() <= t.value){
+                        inputs.add(new TransactionInput(t.id));
+                    }
+                }
+        );
+
+        Transaction newTransaction = new Transaction(w.getPublicKey(), _recipient , value, inputs);
+        newTransaction.generateSignature(w.getPrivateKey());
+
+        inputs.stream().forEach(i -> w.getUnspentTxOutMap().remove(i.getTransactionOutputId()));
+
         return newTransaction;
     }
 }

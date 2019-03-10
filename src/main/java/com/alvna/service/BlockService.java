@@ -2,9 +2,18 @@ package com.alvna.service;
 
 import com.alvna.model.Block;
 import com.alvna.model.Transaction;
+import com.alvna.model.TransactionOutput;
 import com.alvna.util.StringUtil;
 
+import java.util.Map;
+
 public class BlockService {
+
+    private TransactionService transactionService;
+
+    public BlockService(TransactionService transactionService){
+        this.transactionService = transactionService;
+    }
 
     //Increases nonce value until hash target is reached.
     public void mineBlock(Block b, int difficulty) {
@@ -18,11 +27,11 @@ public class BlockService {
     }
 
     //Add transactions to this block
-    public boolean addTransaction(Block b, Transaction transaction) {
+    public boolean addTransaction(Block b, Transaction transaction, Map<String, TransactionOutput> UTXOs) {
         //process transaction and check if valid, unless block is genesis block then ignore.
         if(transaction == null) return false;
         if((b.getPreviousHash() != "0")) {
-            if((transaction.processTransaction() != true)) {
+            if((transactionService.processTransaction(transaction, UTXOs) != true)) {
                 System.out.println("Transaction failed to process. Discarded.");
                 return false;
             }
